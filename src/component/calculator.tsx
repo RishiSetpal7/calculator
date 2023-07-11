@@ -6,127 +6,213 @@ import { FiMoon, FiSun, FiClock } from 'react-icons/fi'
 
 import { useContext, useEffect, useState } from 'react'
 import { LightModeContext } from './lightModeContext'
+import { number } from 'mathjs'
+import { useNavigate } from 'react-router-dom';
 
+// Solution 1 [use String] ********************************
+// One of the easiest ways to calculate is to use eval(string) inside try{}catch(error){} block
+// on btn it will concat and on equal it will eval(string) 
+// if isNaN that show error message
+// Solution 2 [use Number]
 export default function Calculator() {
     // theme
     const { lightMode, toogleLightMode } = useContext(LightModeContext);
-    const handleClick = () => {
+    const handleThemeChange = () => {
         toogleLightMode();
     }
 
-    //calculator
+    const [previousOperations, setPreviousOperations] = useState<string[]>(['No History']);
+    // navigation
+    const nav = useNavigate();
+    const handleNavigateHistory = () => {
+        nav('/recentHistory', { state: { savedHistory: previousOperations } });
+    }
+
+    // Calculator
     // <>   this helps to define the data type of the state
     // ()=> this helps to set the Inital state value only once when first rendered, same as constructor.
-    const [inputNum, setInputNum] = useState<number>(() => 0)
-    const [monitor, setMonitor] = useState<number>(() => 0);
-    const [decimal, setDecimal] = useState<boolean>(() => false);
-    const [decimalcount, setDecimalCount] = useState<number>(() => 1);
+
+    const [currentOperation, setCurrentOperation] = useState<string>('');
+    const [displayValue, setDisplayValue] = useState<string>('0');
+
+    const [firstOperand, setFirstOperand] = useState<number>(() => 0);
     const [operator, setOperator] = useState<string>(() => '');
-    const [calculatednum, setCalculatednum] = useState<number>(() => 0);
+    const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
 
-    useEffect(() => {
-        setMonitor(inputNum);
-    }, [inputNum])
+    const handleClear = () => {
+        setPreviousOperations(['No History']);
+        setCurrentOperation('');
+        setDisplayValue('0');
+        setFirstOperand(0);
+        setOperator('');
+        setWaitingForSecondOperand(false);
+    };
 
-    useEffect(() => {
-        setMonitor(calculatednum);
-    }, [calculatednum])
+    const handleToggleSign = () => {
+        const value = parseFloat(displayValue);
+        setDisplayValue(String(-value));
+    };
 
-    //recieve number from input button
-    const inputNumTotal = (num: number) => {
-        if (decimal) {
-            num = num / Math.pow(10, decimalcount);
-            setDecimalCount(decimalcount + 1);
-            setInputNum(parseFloat((inputNum + num).toFixed(decimalcount)))
-        } else {
-            setInputNum(inputNum * 10 + num)
-        }
+    const handlePercentage = () => {
+        const inputValue = parseFloat(displayValue);
 
-    }
-
-    //receive operator from input button
-    const inputOperator = (operator: string) => {
-        setOperator(operator);
-        calculate();
-        setInputNum(0)
-    }
-
-    //calculate
-    const calculate = () => {
-        setDecimal(false);
-        setDecimalCount(1)
-        if (operator === '/' && inputNum === 0) {
-            setCalculatednum(NaN);
-            setInputNum(0)
-            return
-        }
-        if (calculatednum === 0 && inputNum === 0) {
+        if (inputValue === 0) {
+            displayError('Cannot calculate percentage of zero.');
             return;
         }
-        switch (operator) {
-            case '+':
-                setCalculatednum(calculatednum + inputNum);
-                break;
-            case '/':
-                setCalculatednum(calculatednum / inputNum);
-                break;
-            case '*':
-                setCalculatednum(calculatednum * inputNum);
-                break;
-            case '-':
-                setCalculatednum(calculatednum - inputNum);
-                break;
+
+        const result = inputValue / 100;
+
+        setPreviousOperations(prev => {
+            if (prev[0] === 'No History') {
+                return [`${currentOperation}${displayValue} % = ${result}`];
+            }
+            return [...prev, `${currentOperation}${displayValue} % = ${result}`];
+        });
+        setCurrentOperation(`${result}`);
+        setDisplayValue(String(result));
+        setFirstOperand(result);
+        setOperator('');
+        setWaitingForSecondOperand(true);
+    };
+
+    const handleButtonClick = (value: number | string): void => {
+        if (typeof value === 'number') {
+            handleDigitInput(value);
+        } else if (typeof value === 'string') {
+            if (value === '.') {
+                handleDecimalInput();
+            } else if (value === '=') {
+                handleEquals();
+            } else {
+                handleOperatorInput(value);
+            }
         }
-        if (operator === '') setCalculatednum(inputNum);
-        else setInputNum(0);
-        return;
-    }
+    };
 
-    //get equation
-    const equal = () => {
-        calculate();
-        setOperator('')
-    }
+    const handleDigitInput = (digit: number): void => {
+        if (waitingForSecondOperand) {
+            setDisplayValue(String(digit));
+            setWaitingForSecondOperand(false);
+        } else {
+            setDisplayValue(displayValue === '0' ? String(digit) : displayValue + digit);
+        }
+    };
 
-    //clear all
-    const clearall = () => {
-        setInputNum(0);
-        setCalculatednum(0);
-        setMonitor(0);
-        setOperator('')
-    }
+    const handleDecimalInput = () => {
+        if (!displayValue.includes('.')) {
+            setDisplayValue(displayValue + '.');
+        }
+    };
+
+    const handleEquals = () => {
+        if (operator == '') return;
+
+        if (waitingForSecondOperand) {
+            displayError('Incomplete input.');
+            return;
+        }
+
+        const result = performCalculation();
+        if (!isFinite(result)) {
+            displayError('Invalid input.');
+            return;
+        }
+
+        setDisplayValue(String(result));
+        setFirstOperand(0);
+        setOperator('');
+        setWaitingForSecondOperand(false);
+        setCurrentOperation('');
+        setPreviousOperations(prev => {
+            if (prev[0] === 'No History') {
+                return [`${currentOperation} ${displayValue} = ${result}`];
+            }
+            return [...prev, `${currentOperation} ${displayValue} = ${result}`];
+        });
+    };
+
+
+    const handleOperatorInput = (nextOperator: string) => {
+        const inputValue = parseFloat(displayValue);
+
+        if (firstOperand === 0) {
+            setFirstOperand(inputValue);
+            // setDisplayValue('0');
+        } else if (operator != '') {
+            const result = performCalculation();
+            setDisplayValue(String(result));
+            setFirstOperand(result);
+        }
+
+        setWaitingForSecondOperand(true);
+        setOperator(nextOperator);
+        setCurrentOperation(`${inputValue} ${nextOperator}`);
+
+    };
+
+    const performCalculation = () => {
+        const inputValue = parseFloat(displayValue);
+
+        if (operator === '+') {
+            return firstOperand + inputValue;
+        } else if (operator === '-') {
+            return firstOperand - inputValue;
+        } else if (operator === '*') {
+            return firstOperand * inputValue;
+        } else if (operator === '/') {
+            return firstOperand / inputValue;
+        }
+
+        return inputValue;
+    };
+
+    const handleDelete = () => {
+        if (displayValue.length === 1) {
+            setDisplayValue('0');
+        } else {
+            setDisplayValue(displayValue.slice(0, -1));
+        }
+    };
+
+    const displayError = (message: string) => {
+        alert(message);
+    };
+
 
     return <>
         <div className={lightMode ? cx(styles.lightcalculator, styles.calculator) : styles.calculator}>
-            <section className={styles.theme} onClick={handleClick}>
-                {/* {lightMode ? <FiClock className={styles.lighticon} /> : <FiClock />} */}
+            <section className={styles.theme} >
+                <span onClick={handleNavigateHistory}> {lightMode ? <FiClock className={styles.lighticon} /> : <FiClock />} </span>
                 <span>Calculator</span>
-                {lightMode ? <FiSun className={styles.lighticon} /> : <FiMoon />}
+                <span onClick={handleThemeChange}> {lightMode ? <FiSun className={styles.lighticon} /> : <FiMoon />}</span>
+
             </section>
             <section className={styles.monitor}>
-                {/* <p className={styles.prevmonitor}>{inputNum}</p> */}
-                <p>{monitor}</p>
+                <p className={styles.prevmonitor}>{currentOperation}</p>
+                <p>{displayValue}</p>
             </section>
             <section className={styles.calcbtnContainer}>
-                <button onClick={clearall} className={lightMode ? styles.btnyellow : styles.btngrey}>AC</button>
-                <button className={lightMode ? styles.btnyellow : styles.btngrey}>-/+</button>
-                <button className={lightMode ? styles.btnyellow : styles.btngrey}>%</button>
-                <button onClick={() => inputOperator('/')} className={lightMode ? styles.btnyellow : styles.btngrey}>/</button>
-                <button onClick={() => inputNumTotal(7)} className={lightMode ? styles.btnred : styles.btndavygrey}>7</button>
-                <button onClick={() => inputNumTotal(8)} className={lightMode ? styles.btnred : styles.btndavygrey}>8</button>
-                <button onClick={() => inputNumTotal(9)} className={lightMode ? styles.btnred : styles.btndavygrey}>9</button>
-                <button onClick={() => inputOperator('*')} className={lightMode ? styles.btnyellow : styles.btngrey}>*</button>
-                <button onClick={() => inputNumTotal(4)} className={lightMode ? styles.btnred : styles.btndavygrey}>4</button>
-                <button onClick={() => inputNumTotal(5)} className={lightMode ? styles.btnred : styles.btndavygrey}>5</button>
-                <button onClick={() => inputNumTotal(6)} className={lightMode ? styles.btnred : styles.btndavygrey}>6</button>
-                <button onClick={() => inputOperator('-')} className={lightMode ? styles.btnyellow : styles.btngrey}>-</button>
-                <button onClick={() => inputNumTotal(1)} className={lightMode ? styles.btnred : styles.btndavygrey}>1</button>
-                <button onClick={() => inputNumTotal(2)} className={lightMode ? styles.btnred : styles.btndavygrey}>2</button>
-                <button onClick={() => inputNumTotal(3)} className={lightMode ? styles.btnred : styles.btndavygrey}>3</button>
-                <button onClick={() => inputOperator('+')} className={lightMode ? styles.btnyellow : styles.btngrey}>+</button>
-                <button onClick={() => inputNumTotal(0)} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btnzero)}>0</button>
-                <button onClick={() => setDecimal(true)} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btndot)}>.</button>
-                <button onClick={equal} className={lightMode ? cx(styles.btntotallight, styles.btntotal) : styles.btntotal}>=</button>
+                <button onClick={handleClear} className={lightMode ? styles.btnyellow : styles.btngrey}>AC</button>
+                <button onClick={() => { return handlePercentage() }} className={lightMode ? styles.btnyellow : styles.btngrey}>%</button>
+                <button onClick={() => handleButtonClick('/')} className={lightMode ? styles.btnyellow : styles.btngrey}>/</button>
+                <button onClick={() => handleDelete()} className={lightMode ? styles.btnyellow : styles.btngrey}>C</button>
+                <button onClick={() => handleButtonClick(7)} className={lightMode ? styles.btnred : styles.btndavygrey}>7</button>
+                <button onClick={() => handleButtonClick(8)} className={lightMode ? styles.btnred : styles.btndavygrey}>8</button>
+                <button onClick={() => handleButtonClick(9)} className={lightMode ? styles.btnred : styles.btndavygrey}>9</button>
+                <button onClick={() => handleButtonClick('*')} className={lightMode ? styles.btnyellow : styles.btngrey}>*</button>
+                <button onClick={() => handleButtonClick(4)} className={lightMode ? styles.btnred : styles.btndavygrey}>4</button>
+                <button onClick={() => handleButtonClick(5)} className={lightMode ? styles.btnred : styles.btndavygrey}>5</button>
+                <button onClick={() => handleButtonClick(6)} className={lightMode ? styles.btnred : styles.btndavygrey}>6</button>
+                <button onClick={() => handleButtonClick('-')} className={lightMode ? styles.btnyellow : styles.btngrey}>-</button>
+                <button onClick={() => handleButtonClick(1)} className={lightMode ? styles.btnred : styles.btndavygrey}>1</button>
+                <button onClick={() => handleButtonClick(2)} className={lightMode ? styles.btnred : styles.btndavygrey}>2</button>
+                <button onClick={() => handleButtonClick(3)} className={lightMode ? styles.btnred : styles.btndavygrey}>3</button>
+                <button onClick={() => handleButtonClick('+')} className={lightMode ? styles.btnyellow : styles.btngrey}>+</button>
+                <button onClick={() => handleButtonClick(0)} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btnzero)}>0</button>
+                <button onClick={() => handleDecimalInput} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btndot)}>.</button>
+                <button onClick={() => handleToggleSign()} className={cx(lightMode ? styles.btnyellow : styles.btngrey, styles.btnPlusMinus)}>-/+</button>
+                <button onClick={() => handleButtonClick('=')} className={lightMode ? cx(styles.btntotallight, styles.btntotal) : styles.btntotal}>=</button>
             </section>
         </div>
     </>
