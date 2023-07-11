@@ -1,0 +1,8 @@
+Create a new Project
+0. Just a Calculator + Validations
+
+1. UI [all elements, Dark and Light theme (used useContext), Drawer up and down for scyentific calculator]
+2. Functionality (Calculations Formula)
+3. History (use of Redux-perisitance) 
+
+4. Documentation

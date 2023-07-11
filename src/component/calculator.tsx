@@ -1,7 +1,7 @@
 
 import styles from './calculator.module.scss'
 import cx from 'classnames'
-import { FiMoon, FiSun } from 'react-icons/fi'
+import { FiMoon, FiSun, FiClock } from 'react-icons/fi'
 
 
 import { useContext, useEffect, useState } from 'react'
@@ -15,12 +15,14 @@ export default function Calculator() {
     }
 
     //calculator
-    const [inputNum, setInputNum] = useState<number>(0)
-    const [monitor, setMonitor] = useState<number>(0);
-    const [decimal, setDecimal] = useState<boolean>(false);
-    const [decimalcount, setDecimalCount] = useState<number>(1);
-    const [operator, setOperator] = useState<string>('');
-    const [calculatednum, setCalculatednum] = useState<number>(0);
+    // <>   this helps to define the data type of the state
+    // ()=> this helps to set the Inital state value only once when first rendered, same as constructor.
+    const [inputNum, setInputNum] = useState<number>(() => 0)
+    const [monitor, setMonitor] = useState<number>(() => 0);
+    const [decimal, setDecimal] = useState<boolean>(() => false);
+    const [decimalcount, setDecimalCount] = useState<number>(() => 1);
+    const [operator, setOperator] = useState<string>(() => '');
+    const [calculatednum, setCalculatednum] = useState<number>(() => 0);
 
     useEffect(() => {
         setMonitor(inputNum);
@@ -97,6 +99,8 @@ export default function Calculator() {
     return <>
         <div className={lightMode ? cx(styles.lightcalculator, styles.calculator) : styles.calculator}>
             <section className={styles.theme} onClick={handleClick}>
+                {/* {lightMode ? <FiClock className={styles.lighticon} /> : <FiClock />} */}
+                <span>Calculator</span>
                 {lightMode ? <FiSun className={styles.lighticon} /> : <FiMoon />}
             </section>
             <section className={styles.monitor}>

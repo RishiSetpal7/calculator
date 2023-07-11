@@ -3,9 +3,10 @@
 
 .calculator {
     background-color: $blackvampire;
-    border-radius: 10px;
+    border-radius: 30px;
 }
 
+// Light theme
 .lightcalculator {
     background-color: $lightyellow;
     color: $blackvampire;
@@ -13,7 +14,7 @@
 
 .monitor {
     text-align: right;
-    margin: 40px 15px 0 0;
+    margin: 50px 15px 0 15px;
     font-size: 45px;
 
     & .prevmonitor {
@@ -27,9 +28,12 @@
 }
 
 .theme {
-    text-align: right;
+    display: flex;
+    text-align: center;
+    justify-content: space-between;
     padding-top: 15px;
     margin-right: 15px;
+    margin-left: 15px;
     font-size: 20px;
 
     & .lighticon {
@@ -46,7 +50,7 @@
     padding: 10px;
 
     & button {
-        border-radius: 10px;
+        border-radius: 30px;
         height: 50px;
         font-size: 15px;
         cursor: pointer;

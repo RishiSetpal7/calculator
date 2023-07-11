@@ -1,15 +1,29 @@
-$antiflashwhite: rgb(222, 222, 222);
+// Sassy CSS
+// preprocessor for CSS
 
-$blackvampire: rgb(5, 5, 5);
+// provides additional capabilities such as 
+// variables,
+// nesting,
+// mixins,
+// and more,
+// making CSS code more modular,
+// reusable,
+// and easier to maintain.
 
 
+// Color scss Variable 
+$antiflashwhite: rgb(222, 222, 222); //Light
+$blackvampire: rgb(5, 5, 5); //Dark
+
+// Dark Theme: Button: Background-colors
 $davygrey: rgb(85, 85, 85);
 $gray: rgb(128, 128, 128);
 $spirodisco: rgb(34, 208, 251);
 
+// Light Theme: Button: Background-colors
 $peach: rgb(255, 235, 181);
 $lightyellow: rgb(255, 253, 227);
 $paleyellow: rgb(255, 247, 196);
-$lightred: rgb(255, 208, 207);
-$melon: rgb(252, 171, 171);
+$lightred: rgb(207, 250, 255);
+$melon: rgb(171, 252, 252);
 $tangerineyellow: rgb(255, 204, 0);
