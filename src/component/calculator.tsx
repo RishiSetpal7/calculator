@@ -7,6 +7,11 @@ import { FiMoon, FiSun, FiClock } from 'react-icons/fi'
 import { useContext, useEffect, useState } from 'react'
 import { LightModeContext } from './lightModeContext'
 
+// Solution 1 [use String]
+// One of the easiest ways to calculate is to use eval(string) inside try{}catch(error){} block
+// on btn it will concat and on equal it will eval(string) 
+// if isNaN that show error message
+// Solution 2 [use Number]
 export default function Calculator() {
     // theme
     const { lightMode, toogleLightMode } = useContext(LightModeContext);
@@ -17,10 +22,12 @@ export default function Calculator() {
     //calculator
     // <>   this helps to define the data type of the state
     // ()=> this helps to set the Inital state value only once when first rendered, same as constructor.
-    const [inputNum, setInputNum] = useState<number>(() => 0)
+    const [inputNum, setInputNum] = useState<number>(() => 0);
     const [monitor, setMonitor] = useState<number>(() => 0);
+
     const [decimal, setDecimal] = useState<boolean>(() => false);
     const [decimalcount, setDecimalCount] = useState<number>(() => 1);
+
     const [operator, setOperator] = useState<string>(() => '');
     const [calculatednum, setCalculatednum] = useState<number>(() => 0);
 
@@ -35,6 +42,7 @@ export default function Calculator() {
     //recieve number from input button
     const inputNumTotal = (num: number) => {
         if (decimal) {
+            // previous 5. if we entered a decimal 5 then 5.5 with decimal
             num = num / Math.pow(10, decimalcount);
             setDecimalCount(decimalcount + 1);
             setInputNum(parseFloat((inputNum + num).toFixed(decimalcount)))
@@ -104,13 +112,13 @@ export default function Calculator() {
                 {lightMode ? <FiSun className={styles.lighticon} /> : <FiMoon />}
             </section>
             <section className={styles.monitor}>
-                {/* <p className={styles.prevmonitor}>{inputNum}</p> */}
+                <p className={styles.prevmonitor}>{inputNum}</p>
                 <p>{monitor}</p>
             </section>
             <section className={styles.calcbtnContainer}>
                 <button onClick={clearall} className={lightMode ? styles.btnyellow : styles.btngrey}>AC</button>
-                <button className={lightMode ? styles.btnyellow : styles.btngrey}>-/+</button>
-                <button className={lightMode ? styles.btnyellow : styles.btngrey}>%</button>
+                <button onClick={() => { }} className={lightMode ? styles.btnyellow : styles.btngrey}>-/+</button>
+                <button onClick={() => { }} className={lightMode ? styles.btnyellow : styles.btngrey}>%</button>
                 <button onClick={() => inputOperator('/')} className={lightMode ? styles.btnyellow : styles.btngrey}>/</button>
                 <button onClick={() => inputNumTotal(7)} className={lightMode ? styles.btnred : styles.btndavygrey}>7</button>
                 <button onClick={() => inputNumTotal(8)} className={lightMode ? styles.btnred : styles.btndavygrey}>8</button>
