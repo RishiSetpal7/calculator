@@ -7,6 +7,7 @@ import { FiMoon, FiSun, FiClock } from 'react-icons/fi'
 import { useContext, useEffect, useState } from 'react'
 import { LightModeContext } from './lightModeContext'
 import { number } from 'mathjs'
+import { useNavigate } from 'react-router-dom';
 
 // Solution 1 [use String] ********************************
 // One of the easiest ways to calculate is to use eval(string) inside try{}catch(error){} block
@@ -20,10 +21,16 @@ export default function Calculator() {
         toogleLightMode();
     }
 
-    //calculator
+    const [previousOperations, setPreviousOperations] = useState<string[]>(['No History']);
+    // navigation
+    const nav = useNavigate();
+    const handleNavigateHistory = () => {
+        nav('/recentHistory', { state: { savedHistory: previousOperations } });
+    }
+
+    // Calculator
     // <>   this helps to define the data type of the state
     // ()=> this helps to set the Inital state value only once when first rendered, same as constructor.
-    const [previousOperations, setPreviousOperations] = useState<string[]>([]);
 
     const [currentOperation, setCurrentOperation] = useState<string>('');
     const [displayValue, setDisplayValue] = useState<string>('0');
@@ -33,7 +40,7 @@ export default function Calculator() {
     const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
 
     const handleClear = () => {
-        setPreviousOperations([]);
+        setPreviousOperations(['No History']);
         setCurrentOperation('');
         setDisplayValue('0');
         setFirstOperand(0);
@@ -56,7 +63,12 @@ export default function Calculator() {
 
         const result = inputValue / 100;
 
-        setPreviousOperations(prev => [...prev, `${currentOperation}${displayValue} % = ${result}`]);
+        setPreviousOperations(prev => {
+            if (prev[0] === 'No History') {
+                return [`${currentOperation}${displayValue} % = ${result}`];
+            }
+            return [...prev, `${currentOperation}${displayValue} % = ${result}`];
+        });
         setCurrentOperation(`${result}`);
         setDisplayValue(String(result));
         setFirstOperand(result);
@@ -112,7 +124,12 @@ export default function Calculator() {
         setOperator('');
         setWaitingForSecondOperand(false);
         setCurrentOperation('');
-        setPreviousOperations(prev => [...prev, `${currentOperation} ${displayValue} = ${result}`]);
+        setPreviousOperations(prev => {
+            if (prev[0] === 'No History') {
+                return [`${currentOperation} ${displayValue} = ${result}`];
+            }
+            return [...prev, `${currentOperation} ${displayValue} = ${result}`];
+        });
     };
 
 
@@ -166,7 +183,7 @@ export default function Calculator() {
     return <>
         <div className={lightMode ? cx(styles.lightcalculator, styles.calculator) : styles.calculator}>
             <section className={styles.theme} >
-                {/* <span onClick={handleNavigateHistory}> {lightMode ? <FiClock className={styles.lighticon} /> : <FiClock />} </span> */}
+                <span onClick={handleNavigateHistory}> {lightMode ? <FiClock className={styles.lighticon} /> : <FiClock />} </span>
                 <span>Calculator</span>
                 <span onClick={handleThemeChange}> {lightMode ? <FiSun className={styles.lighticon} /> : <FiMoon />}</span>
 

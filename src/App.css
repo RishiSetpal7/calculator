@@ -2,6 +2,7 @@
   text-align: center;
   background-color: #282c34;
   min-height: 100vh;
+  /* border: 20px solid green; */
   display: flex;
   flex-direction: column;
   align-items: center;
