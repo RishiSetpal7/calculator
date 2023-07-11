@@ -4,9 +4,8 @@ import cx from 'classnames'
 import { FiMoon, FiSun, FiClock } from 'react-icons/fi'
 
 
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useState } from 'react'
 import { LightModeContext } from './lightModeContext'
-import { number } from 'mathjs'
 import { useNavigate } from 'react-router-dom';
 
 // Solution 1 [use String] ********************************
@@ -77,6 +76,7 @@ export default function Calculator() {
     };
 
     const handleButtonClick = (value: number | string): void => {
+        console.log('typeof value: ', typeof value);
         if (typeof value === 'number') {
             handleDigitInput(value);
         } else if (typeof value === 'string') {
@@ -106,7 +106,7 @@ export default function Calculator() {
     };
 
     const handleEquals = () => {
-        if (operator == '') return;
+        if (operator === '') return;
 
         if (waitingForSecondOperand) {
             displayError('Incomplete input.');
@@ -139,7 +139,7 @@ export default function Calculator() {
         if (firstOperand === 0) {
             setFirstOperand(inputValue);
             // setDisplayValue('0');
-        } else if (operator != '') {
+        } else if (operator !== '') {
             const result = performCalculation();
             setDisplayValue(String(result));
             setFirstOperand(result);
@@ -210,7 +210,7 @@ export default function Calculator() {
                 <button onClick={() => handleButtonClick(3)} className={lightMode ? styles.btnred : styles.btndavygrey}>3</button>
                 <button onClick={() => handleButtonClick('+')} className={lightMode ? styles.btnyellow : styles.btngrey}>+</button>
                 <button onClick={() => handleButtonClick(0)} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btnzero)}>0</button>
-                <button onClick={() => handleDecimalInput} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btndot)}>.</button>
+                <button onClick={() => handleDecimalInput()} className={cx(lightMode ? styles.btnred : styles.btndavygrey, styles.btndot)}>.</button>
                 <button onClick={() => handleToggleSign()} className={cx(lightMode ? styles.btnyellow : styles.btngrey, styles.btnPlusMinus)}>-/+</button>
                 <button onClick={() => handleButtonClick('=')} className={lightMode ? cx(styles.btntotallight, styles.btntotal) : styles.btntotal}>=</button>
             </section>

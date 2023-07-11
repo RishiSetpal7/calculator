@@ -21,7 +21,7 @@ export default function RecentHistory() {
     const loc = useLocation();
     useEffect(() => {
         setHistory(loc.state.savedHistory);
-    }, []);
+    }, [loc.state.savedHistory]);
 
     // navigation
     const nav = useNavigate();
