@@ -8,6 +8,17 @@ import { useContext, useState } from 'react'
 import { LightModeContext } from './lightModeContext'
 import { useNavigate } from 'react-router-dom';
 
+/*
+Adding Validation
+All necessary input data validations should be there in alert message box. 
+zero division => Zero Division Error: Division by zero is not allowed.
+invalid input => Invalid Input Error: 
+incomplete input => Incomplete Input: Please enter 2nd Operand.
+input cannot be empty
+text and spl.char not allowed
+except Math operators.
+*/
+
 // Solution 1 [use String] ********************************
 // One of the easiest ways to calculate is to use eval(string) inside try{}catch(error){} block
 // on btn it will concat and on equal it will eval(string) 
@@ -56,7 +67,7 @@ export default function Calculator() {
         const inputValue = parseFloat(displayValue);
 
         if (inputValue === 0) {
-            displayError('Cannot calculate percentage of zero.');
+            displayError('Percentage Error: Cannot calculate mod or percentage of zero.');
             return;
         }
 
@@ -77,6 +88,14 @@ export default function Calculator() {
 
     const handleButtonClick = (value: number | string): void => {
         console.log('typeof value: ', typeof value);
+
+        // Not possible as we have only buttons that are valid & Input by keyboard is diabled.
+        // Regular expression to allow math operators and numeric values
+        const regex = /^[+\-*/.^0-9()= ]+$/;
+        if (!regex.test(value.toString())) {
+            alert("Input Error: Text and special characters are not allowed, except for math operators.");
+        }
+
         if (typeof value === 'number') {
             handleDigitInput(value);
         } else if (typeof value === 'string') {
@@ -109,13 +128,13 @@ export default function Calculator() {
         if (operator === '') return;
 
         if (waitingForSecondOperand) {
-            displayError('Incomplete input.');
+            displayError('Incomplete Input: Please enter 2nd Operand.');
             return;
         }
 
         const result = performCalculation();
         if (!isFinite(result)) {
-            displayError('Invalid input.');
+            // displayError('Invalid input.');
             return;
         }
 
@@ -135,6 +154,12 @@ export default function Calculator() {
 
     const handleOperatorInput = (nextOperator: string) => {
         const inputValue = parseFloat(displayValue);
+
+        // Not possible as we have only buttons that are valid & Input by keyboard is diabled.
+        if (isNaN(inputValue)) {
+            displayError('Invalid Input: Please enter a valid 1st number.');
+            return;
+        }
 
         if (firstOperand === 0) {
             setFirstOperand(inputValue);
@@ -161,6 +186,10 @@ export default function Calculator() {
         } else if (operator === '*') {
             return firstOperand * inputValue;
         } else if (operator === '/') {
+            if (inputValue === 0) {
+                displayError('Zero Division Error: Division by zero is not allowed.');
+                return NaN;
+            }
             return firstOperand / inputValue;
         }
 
